@@ -1,0 +1,14 @@
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+metadata:
+  name: main-pvc
+  namespace: audit
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

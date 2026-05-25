@@ -1,0 +1,15 @@
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  name: main-service
+  namespace: audit
+
+spec:
+  selector:
+    app: audit-nodes
+  type: ClusterIP
+  ports:
+    - port: 5050
+      targetPort: 5555

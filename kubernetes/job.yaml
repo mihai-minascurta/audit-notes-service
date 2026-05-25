@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: main-job
+  namespace: audit
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: main-job
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: busybox:latest
+          command:
+            - sh
+            - -c
+            - touch /data/defaultnote.txt
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: main-pvc

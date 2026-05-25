@@ -1,0 +1,12 @@
+apiVersion: v1
+
+kind: ConfigMap
+
+metadata:
+  name: main-configmap
+  namespace: audit
+
+data:
+  APP_MODE: "dev"
+  MESSAGE: "Hi from configmap"
+  DATA_PATH: "/data/defaultnote.txt"
