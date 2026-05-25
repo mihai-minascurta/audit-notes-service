@@ -123,19 +123,16 @@ kind load docker-image audit-notes-app:1.0 --name kind
 ## 📸 Screenshots
 
 **Build**
-<!-- Add screenshot -->
+![Build](screenshots/build.png)
 
 **Healthcheck**
-<!-- Add screenshot -->
-
-**App at http://audit.local**
-<!-- Add screenshot -->
+![Healthcheck](screenshots/healthcheck.png)
 
 **Debug overview**
-<!-- Add screenshot -->
+![Debug](screenshots/debug.png)
 
-**CronJob reports in /data/reports/**
-<!-- Add screenshot -->
+**Delete all resource instances**
+![Build](screenshots/delete.png)
 
 ---
 
