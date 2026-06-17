@@ -150,3 +150,21 @@ jobs:
         run: |
           set -euo pipefail
           kind load docker-image $IMAGE_NAME:$IMAGE_TAG --name audit-ci
+          
+      - name: Deploy Kubernetes manifests
+        run: |
+          set -euo pipefail
+          kubectl create namespace audit --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f kubernetes/
+
+      - name: Wait for deployment rollout
+        run: |
+          set -euo pipefail
+          kubectl -n audit rollout status deployment/main-deployment --timeout=120s
+
+      - name: Show Kubernetes state
+        if: always()
+        run: |
+          kubectl -n audit get all
+          kubectl -n audit get pods -o wide
+          kubectl -n audit get events --sort-by=.metadata.creationTimestamp | tail -40
