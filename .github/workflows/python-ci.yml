@@ -16,7 +16,8 @@ env:
   LOCAL_IMAGE_TAG: "1.0"
   REGISTRY: ghcr.io
   REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/audit-notes-service
-
+  IMAGE_TAG_SHA: sha-${{ github.sha }}
+  IMAGE_TAG_LATEST: latest
 jobs:
   python-tests:
     name: Run Python tests
@@ -107,6 +108,20 @@ jobs:
           echo
           curl -fsS http://127.0.0.1:5555/read
           echo
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login $REGISTRY -u "${{ github.actor }}" --password-stdin
+      - name: Tag and push Docker image to GHCR
+        run: |
+          set -euo pipefail
+
+          docker tag $LOCAL_IMAGE_NAME:$LOCAL_IMAGE_TAG $REGISTRY_IMAGE:$IMAGE_TAG_SHA
+          docker tag $LOCAL_IMAGE_NAME:$LOCAL_IMAGE_TAG $REGISTRY_IMAGE:$IMAGE_TAG_LATEST
+
+          docker push $REGISTRY_IMAGE:$IMAGE_TAG_SHA
+          docker push $REGISTRY_IMAGE:$IMAGE_TAG_LATEST
 
       - name: Show container logs
         if: always()
