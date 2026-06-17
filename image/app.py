@@ -2,12 +2,13 @@ from flask import Flask, jsonify
 import os
 import logging
 
-os.makedirs('/logs', exist_ok=True)
+LOG_DIR = os.environ.get("LOG_DIR", "/logs")
+os.makedirs(LOG_DIR, exist_ok=True)
 
 logging.basicConfig(
-    filename='/logs/app.log',   # sidecar container writes from here!!!
+    filename=os.path.join(LOG_DIR, "app.log"),
     level=logging.INFO,
-    format='%(asctime)s %(message)s'
+    format="%(asctime)s %(message)s"
 )
 
 app = Flask(__name__)

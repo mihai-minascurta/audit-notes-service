@@ -1,0 +1,43 @@
+name: Phase 1 - Python CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    name: Run Python tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r image/requirements.txt
+          pip install pytest
+
+      - name: Check Python syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile image/app.py
+
+      - name: Run pytest
+        run: |
+          set -euo pipefail
+          PYTHONPATH=image pytest -q
