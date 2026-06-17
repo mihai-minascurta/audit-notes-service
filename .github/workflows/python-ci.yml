@@ -150,7 +150,7 @@ jobs:
         run: |
           set -euo pipefail
           kind load docker-image $IMAGE_NAME:$IMAGE_TAG --name audit-ci
-          
+
       - name: Deploy Kubernetes manifests
         run: |
           set -euo pipefail
@@ -168,3 +168,25 @@ jobs:
           kubectl -n audit get all
           kubectl -n audit get pods -o wide
           kubectl -n audit get events --sort-by=.metadata.creationTimestamp | tail -40
+
+      - name: Health check through Kubernetes Service
+        run: |
+          set -euo pipefail
+
+          kubectl -n audit port-forward svc/main-service 5050:5050 > /tmp/port-forward.log 2>&1 &
+          PF_PID=$!
+
+          sleep 5
+
+          curl -fsS http://127.0.0.1:5050/health
+          echo
+          curl -fsS http://127.0.0.1:5050/write
+          echo
+          curl -fsS http://127.0.0.1:5050/read
+          echo
+
+          kill $PF_PID
+      - name: Show port-forward logs
+        if: always()
+        run: |
+          cat /tmp/port-forward.log || true
