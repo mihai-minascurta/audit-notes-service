@@ -12,7 +12,7 @@ permissions:
 
 env:
   IMAGE_NAME: audit-notes-app
-  IMAGE_TAG: ci
+  IMAGE_TAG: "1.0"
 
 jobs:
   python-tests:
@@ -114,3 +114,27 @@ jobs:
         if: always()
         run: |
           docker rm -f audit-notes-ci || true
+  kind-cluster:
+    name: Start Kind Kubernetes cluster
+    runs-on: ubuntu-latest
+    needs: docker-build
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Kind
+        run: |
+          set -euo pipefail
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+          kind version
+
+      - name: Create Kind cluster
+        run: |
+          set -euo pipefail
+          kind create cluster --name audit-ci
+          kubectl cluster-info
+          kubectl get nodes
