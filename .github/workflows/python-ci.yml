@@ -1,4 +1,4 @@
-name: Phase 1 - Python CI
+name: Phase 1 - CI/CD
 
 on:
   push:
@@ -9,6 +9,10 @@ on:
 
 permissions:
   contents: read
+
+env:
+  IMAGE_NAME: audit-notes-app
+  IMAGE_TAG: ci
 
 jobs:
   python-tests:
@@ -41,3 +45,72 @@ jobs:
         run: |
           set -euo pipefail
           PYTHONPATH=image pytest -q
+
+  docker-build:
+    name: Build Docker image and test container
+    runs-on: ubuntu-latest
+    needs: python-tests
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          set -euo pipefail
+          docker build -t $IMAGE_NAME:$IMAGE_TAG ./image
+
+      - name: Show Docker image
+        run: |
+          set -euo pipefail
+          docker images | grep $IMAGE_NAME
+
+      - name: Run container
+        run: |
+          set -euo pipefail
+          docker run -d \
+            --name audit-notes-ci \
+            -p 5555:5555 \
+            -e APP_MODE=ci \
+            -e MESSAGE="Running in GitHub Actions" \
+            -e DATA_PATH=/data/message.txt \
+            $IMAGE_NAME:$IMAGE_TAG
+
+      - name: Health check container
+        run: |
+          set -euo pipefail
+
+          for i in {1..10}; do
+            if curl -fsS http://127.0.0.1:5555/health; then
+              echo
+              echo "Container health check passed"
+              exit 0
+            fi
+
+            echo "Waiting for container..."
+            sleep 3
+          done
+
+          echo "Container health check failed"
+          docker ps -a
+          docker logs audit-notes-ci
+          exit 1
+
+      - name: Test write and read endpoints
+        run: |
+          set -euo pipefail
+          curl -fsS http://127.0.0.1:5555/write
+          echo
+          curl -fsS http://127.0.0.1:5555/read
+          echo
+
+      - name: Show container logs
+        if: always()
+        run: |
+          docker logs audit-notes-ci || true
+
+      - name: Stop container
+        if: always()
+        run: |
+          docker rm -f audit-notes-ci || true
