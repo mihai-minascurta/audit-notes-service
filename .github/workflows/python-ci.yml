@@ -9,10 +9,13 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 env:
-  IMAGE_NAME: audit-notes-app
-  IMAGE_TAG: "1.0"
+  LOCAL_IMAGE_NAME: audit-notes-app
+  LOCAL_IMAGE_TAG: "1.0"
+  REGISTRY: ghcr.io
+  REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/audit-notes-service
 
 jobs:
   python-tests:
@@ -59,12 +62,12 @@ jobs:
       - name: Build Docker image
         run: |
           set -euo pipefail
-          docker build -t $IMAGE_NAME:$IMAGE_TAG ./image
+          docker build -t $LOCAL_IMAGE_NAME:$LOCAL_IMAGE_TAG ./image
 
       - name: Show Docker image
         run: |
           set -euo pipefail
-          docker images | grep $IMAGE_NAME
+          docker images | grep $LOCAL_IMAGE_NAME
 
       - name: Run container
         run: |
@@ -75,7 +78,7 @@ jobs:
             -e APP_MODE=ci \
             -e MESSAGE="Running in GitHub Actions" \
             -e DATA_PATH=/data/message.txt \
-            $IMAGE_NAME:$IMAGE_TAG
+            $LOCAL_IMAGE_NAME:$LOCAL_IMAGE_TAG
 
       - name: Health check container
         run: |
@@ -139,17 +142,17 @@ jobs:
           kind create cluster --name audit-ci
           kubectl cluster-info
           kubectl get nodes
-        
+
       - name: Build Docker image for Kind
         run: |
           set -euo pipefail
-          docker build -t $IMAGE_NAME:$IMAGE_TAG ./image
-          docker images | grep $IMAGE_NAME
+          docker build -t $LOCAL_IMAGE_NAME:$LOCAL_IMAGE_TAG ./image
+          docker images | grep $LOCAL_IMAGE_NAME
 
       - name: Load Docker image into Kind
         run: |
           set -euo pipefail
-          kind load docker-image $IMAGE_NAME:$IMAGE_TAG --name audit-ci
+          kind load docker-image $LOCAL_IMAGE_NAME:$LOCAL_IMAGE_TAG --name audit-ci
 
       - name: Deploy Kubernetes manifests
         run: |
@@ -186,10 +189,12 @@ jobs:
           echo
 
           kill $PF_PID
+
       - name: Show port-forward logs
         if: always()
         run: |
           cat /tmp/port-forward.log || true
+
       - name: Delete Kind cluster
         if: always()
         run: |
