@@ -157,7 +157,7 @@ jobs:
           kind create cluster --name audit-ci
           kubectl cluster-info
           kubectl get nodes
-          
+
       - name: Create GHCR pull secret
         run: |
           set -euo pipefail
@@ -183,6 +183,24 @@ jobs:
             main-container=$REGISTRY_IMAGE:$IMAGE_TAG_SHA
 
           kubectl -n audit describe deployment main-deployment | grep -A3 "Image:"
+      - name: Verify Deployment uses GHCR SHA image
+        run: |
+          set -euo pipefail
+
+          EXPECTED_IMAGE="$REGISTRY_IMAGE:$IMAGE_TAG_SHA"
+
+          ACTUAL_IMAGE=$(kubectl -n audit get deployment main-deployment \
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="main-container")].image}')
+
+          echo "Expected image: $EXPECTED_IMAGE"
+          echo "Actual image:   $ACTUAL_IMAGE"
+
+          if [ "$ACTUAL_IMAGE" != "$EXPECTED_IMAGE" ]; then
+            echo "Deployment is not using the expected GHCR SHA image"
+            exit 1
+          fi
+
+          echo "Deployment uses the expected GHCR SHA image"
 
       - name: Wait for deployment rollout
         run: |
