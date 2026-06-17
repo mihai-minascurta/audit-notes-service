@@ -71,7 +71,7 @@ jobs:
           set -euo pipefail
           docker run -d \
             --name audit-notes-ci \
-            -p 5555:5555 \
+            -p 5555:9999 \
             -e APP_MODE=ci \
             -e MESSAGE="Running in GitHub Actions" \
             -e DATA_PATH=/data/message.txt \
