@@ -139,3 +139,14 @@ jobs:
           kind create cluster --name audit-ci
           kubectl cluster-info
           kubectl get nodes
+        
+      - name: Build Docker image for Kind
+        run: |
+          set -euo pipefail
+          docker build -t $IMAGE_NAME:$IMAGE_TAG ./image
+          docker images | grep $IMAGE_NAME
+
+      - name: Load Docker image into Kind
+        run: |
+          set -euo pipefail
+          kind load docker-image $IMAGE_NAME:$IMAGE_TAG --name audit-ci
