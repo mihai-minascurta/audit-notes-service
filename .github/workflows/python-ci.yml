@@ -190,3 +190,7 @@ jobs:
         if: always()
         run: |
           cat /tmp/port-forward.log || true
+      - name: Delete Kind cluster
+        if: always()
+        run: |
+          kind delete cluster --name audit-ci || true
