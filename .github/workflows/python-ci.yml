@@ -162,32 +162,28 @@ jobs:
           set -euo pipefail
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           helm version
+      - name: Ensure namespace
+        run: kubectl create namespace
 
       - name: Create GHCR pull secret
         run: |
-          set -euo pipefail
-
-          kubectl create namespace audit --dry-run=client -o yaml | kubectl apply -f -
-
-          kubectl -n audit create secret docker-registry ghcr-auth \
+            set -euo pipefail
+            kubectl -n audit create secret docker-registry ghcr-auth \
             --docker-server=$REGISTRY \
             --docker-username="${{ github.actor }}" \
-            --docker-password="${{ secrets.GITHUB_TOKEN }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
-      - name: Deploy Kubernetes manifests with GHCR image
+            --docker-password="${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Deploy with Helm
         run: |
-          set -euo pipefail
+            set -euo pipefail
+            helm upgrade --install audit-release helm-chart/ \
+            --namespace audit \
+            --create-namespace \
+            --set image.repository=$REGISTRY_IMAGE \
+            --set image.tag=$IMAGE_TAG_SHA \
+            --wait \
+            --timeout 120s
 
-          kubectl apply -f kubernetes/
-
-          kubectl -n audit patch deployment main-deployment \
-            --type='merge' \
-            -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"ghcr-auth"}]}}}}'
-
-          kubectl -n audit set image deployment/main-deployment \
-            main-container=$REGISTRY_IMAGE:$IMAGE_TAG_SHA
-
-          kubectl -n audit describe deployment main-deployment | grep -A3 "Image:"
       - name: Verify Deployment uses GHCR SHA image
         run: |
           set -euo pipefail
@@ -206,11 +202,6 @@ jobs:
           fi
 
           echo "Deployment uses the expected GHCR SHA image"
-
-      - name: Wait for deployment rollout
-        run: |
-          set -euo pipefail
-          kubectl -n audit rollout status deployment/main-deployment --timeout=120s
 
       - name: Show Kubernetes state
         if: always()
