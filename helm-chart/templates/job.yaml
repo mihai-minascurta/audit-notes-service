@@ -2,10 +2,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: main-job
-  namespace: audit
+  namespace: {{ .Values.namespace }}
 spec:
-  backoffLimit: 3
-  ttlSecondsAfterFinished: 300
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
   template:
     metadata:
       labels:
@@ -18,7 +18,7 @@ spec:
           command:
             - sh
             - -c
-            - touch /data/defaultnote.txt
+            - touch {{ .Values.configMap.dataPath }}
           volumeMounts:
             - name: data-volume
               mountPath: /data

@@ -2,21 +2,21 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: main-networkpolicy
-  namespace: audit
+  namespace: {{ .Values.namespace }}
 spec:
   podSelector:
     matchLabels:
-      app: audit-nodes
+      app: {{ .Values.app.name }}
   policyTypes:
     - Ingress
   ingress:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: ingress-nginx
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.allowedNamespace }}
           podSelector:
             matchLabels:
-              app.kubernetes.io/name: ingress-nginx
+              app.kubernetes.io/name: {{ .Values.networkPolicy.allowedPodLabel }}
       ports:
         - protocol: TCP
-          port: 5555
+          port: {{ .Values.containerPort }}

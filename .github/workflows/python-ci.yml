@@ -157,6 +157,11 @@ jobs:
           kind create cluster --name audit-ci
           kubectl cluster-info
           kubectl get nodes
+      - name: Install Helm
+        run: |
+          set -euo pipefail
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm version
 
       - name: Create GHCR pull secret
         run: |

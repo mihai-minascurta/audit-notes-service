@@ -2,12 +2,12 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: main-cronjob
-  namespace: audit
+  namespace: {{ .Values.namespace }}
 spec:
-  schedule: "* * * * *"          # rulează o dată pe minut
-  concurrencyPolicy: Forbid       # nu pornește un job nou dacă cel anterior rulează încă
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  schedule: "{{ .Values.cronJob.schedule }}"
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
   jobTemplate:
     spec:
       template:
@@ -20,15 +20,13 @@ spec:
                 - /bin/sh
                 - -c
                 - |
-                  NOTE_PATH="/data/defaultnote.txt"
+                  NOTE_PATH="{{ .Values.configMap.dataPath }}"
                   REPORT_DIR="/data/reports"
                   TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S')
                   REPORT_FILE="${REPORT_DIR}/report_$(date '+%Y%m%d_%H%M%S').txt"
 
-                  # Creează directorul de rapoarte dacă nu există
                   mkdir -p "$REPORT_DIR"
 
-                  # Verifică dacă notița există
                   if [ -f "$NOTE_PATH" ]; then
                     STATUS="EXISTS"
                     SIZE=$(wc -c < "$NOTE_PATH")
@@ -36,39 +34,36 @@ spec:
                     LAST_MODIFIED=$(stat -c '%y' "$NOTE_PATH" 2>/dev/null || echo "N/A")
 
                     {
-                      echo "===== RAPORT VERIFICARE NOTIȚĂ ====="
+                      echo "===== RAPORT VERIFICARE NOTITA ====="
                       echo "Timestamp:        $TIMESTAMP"
                       echo "Status:           $STATUS"
-                      echo "Cale fișier:      $NOTE_PATH"
+                      echo "Cale fisier:      $NOTE_PATH"
                       echo "Dimensiune:       ${SIZE} bytes"
-                      echo "Număr linii:      $LINES"
+                      echo "Numar linii:      $LINES"
                       echo "Ultima modificare: $LAST_MODIFIED"
                       echo "====================================="
                     } > "$REPORT_FILE"
 
-                    echo "[OK] Notița există. Raport scris în $REPORT_FILE"
+                    echo "[OK] Notita exista. Raport scris in $REPORT_FILE"
                   else
                     STATUS="MISSING"
 
                     {
-                      echo "===== RAPORT VERIFICARE NOTIȚĂ ====="
+                      echo "===== RAPORT VERIFICARE NOTITA ====="
                       echo "Timestamp:   $TIMESTAMP"
                       echo "Status:      $STATUS"
-                      echo "Cale fișier: $NOTE_PATH"
-                      echo "Detalii:     Fișierul nu a fost găsit pe volum."
+                      echo "Cale fisier: $NOTE_PATH"
+                      echo "Detalii:     Fisierul nu a fost gasit pe volum."
                       echo "====================================="
                     } > "$REPORT_FILE"
 
-                    echo "[WARN] Notița lipsește. Raport scris în $REPORT_FILE"
+                    echo "[WARN] Notita lipseste. Raport scris in $REPORT_FILE"
                   fi
 
-                  # Păstrează doar ultimele 60 de rapoarte (1 oră de istoric)
                   ls -1t "${REPORT_DIR}/report_"*.txt 2>/dev/null | tail -n +61 | xargs -r rm --
-
               volumeMounts:
                 - name: data-volume
                   mountPath: /data
-
           volumes:
             - name: data-volume
               persistentVolumeClaim:
