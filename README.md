@@ -139,6 +139,16 @@ Nobody runs these by hand anymore — this whole sequence is what `.github/workf
 
 ---
 
+## 🎓 Why I built it this way
+
+I'm learning to become a **DevOps engineer** — someone who makes sure software ships safely and reliably, not just someone who writes code. So instead of a tutorial project, I built something that actually breaks in real ways, and fixed every single break by understanding *why* it happened, not just copying a fix.
+
+The Kubernetes design, the CI/CD pipeline, and the Helm chart were all built and debugged by hand, on my own local machine first, before being moved into full automation.
+
+I also used **AI assistance** throughout this project — mainly to avoid spending hours rewriting repetitive boilerplate (shell scripts, YAML scaffolding) for things I already understood conceptually, so I could spend that time instead on the parts that actually taught me something: debugging real failures, understanding *why* each piece exists, and learning how production systems are actually wired together.
+
+---
+
 ## 📸 Early-stage screenshots
 
 These were taken during the **first, local-only version** of this project — before the CI/CD pipeline and Helm chart existed. Back then, everything ran by hand on my own machine with `kubectl`, just to prove the Kubernetes design worked before automating it.
@@ -157,15 +167,6 @@ These were taken during the **first, local-only version** of this project — be
 
 ---
 
-## 🎓 Why I built it this way
-
-I'm learning to become a **DevOps engineer** — someone who makes sure software ships safely and reliably, not just someone who writes code. So instead of a tutorial project, I built something that actually breaks in real ways, and fixed every single break by understanding *why* it happened, not just copying a fix.
-
-The Kubernetes design, the CI/CD pipeline, and the Helm chart were all built and debugged by hand, on my own local machine first, before being moved into full automation.
-
-I also used **AI assistance** throughout this project — mainly to avoid spending hours rewriting repetitive boilerplate (shell scripts, YAML scaffolding) for things I already understood conceptually, so I could spend that time instead on the parts that actually taught me something: debugging real failures, understanding *why* each piece exists, and learning how production systems are actually wired together.
-
----
 
 <div align="center">
   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=13&pause=2000&color=39FF14&center=true&vCenter=true&width=600&lines=tested+✅+packaged+📦+shipped+🚀+running+🟢" alt="Footer" />
